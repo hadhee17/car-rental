@@ -1,0 +1,278 @@
+const cars = [
+  {
+    id: 1,
+    brand: "Maruti",
+    model: "Dzire",
+    price: 1200,
+    category: "Sedan",
+    image:
+      "https://cdn.cartoq.com/photos/maruti-suzuki-dzire_colours_splendid-silver_1967f040.webp",
+  },
+  {
+    id: 2,
+    brand: "Hyundai",
+    model: "Verna",
+    price: 1600,
+    category: "Sedan",
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXRO8LmJbNxvPYfjDmOjl671-Gn3_SVVyNFw&s",
+  },
+  {
+    id: 3,
+    brand: "Honda",
+    model: "City",
+    price: 1800,
+    category: "Sedan",
+    image:
+      "https://imgd.aeplcdn.com/664x374/n/cw/ec/134287/city-exterior-right-front-three-quarter-76.jpeg?isig=0&q=80",
+  },
+  {
+    id: 4,
+    brand: "Skoda",
+    model: "Slavia",
+    price: 1900,
+    category: "Sedan",
+    image:
+      "https://imgd-ct.aeplcdn.com/664x415/n/cw/ec/175951/slavia-exterior-left-front-three-quarter.jpeg?isig=0&q=80",
+  },
+  {
+    id: 5,
+    brand: "Volkswagen",
+    model: "Virtus",
+    price: 1950,
+    category: "Sedan",
+    image:
+      "https://imgd.aeplcdn.com/664x374/n/cw/ec/144681/virtus-exterior-right-front-three-quarter-10.jpeg?isig=0&q=80",
+  },
+
+  {
+    id: 6,
+    brand: "Mahindra",
+    model: "Scorpio N",
+    price: 2500,
+    category: "SUV",
+    image:
+      "https://auto.mahindra.com/dw/image/v2/BKRC_PRD/on/demandware.static/-/Sites-mahindra-product-catalog/default/dw14737114/images/SCN/large/ScorpioN_602x339.png?sw=360&sh=202",
+  },
+  {
+    id: 7,
+    brand: "Tata",
+    model: "Safari",
+    price: 2400,
+    category: "SUV",
+    image:
+      "https://imgd.aeplcdn.com/664x374/n/cw/ec/138895/safari-facelift-exterior-right-front-three-quarter-39.jpeg?isig=0&q=80",
+  },
+  {
+    id: 8,
+    brand: "Toyota",
+    model: "Fortuner",
+    price: 3000,
+    category: "SUV",
+    image:
+      "https://imgd.aeplcdn.com/664x374/n/cw/ec/44709/fortuner-exterior-right-front-three-quarter-20.jpeg?isig=0&q=80",
+  },
+  {
+    id: 9,
+    brand: "Hyundai",
+    model: "Creta",
+    price: 2200,
+    category: "SUV",
+    image:
+      "https://imgd.aeplcdn.com/664x374/n/cw/ec/106815/creta-exterior-right-front-three-quarter-5.jpeg?isig=0&q=80",
+  },
+  {
+    id: 10,
+    brand: "MG",
+    model: "Hector",
+    price: 2300,
+    category: "SUV",
+    image:
+      "https://mgmotor.scene7.com/is/image/mgmotor/hc-img-dsc-085?$mg-rgb-tablet-image-responsive$&fmt=png-alpha",
+  },
+
+  {
+    id: 11,
+    brand: "Tata",
+    model: "Nexon EV",
+    price: 2100,
+    category: "Electric",
+    image:
+      "https://imgd.aeplcdn.com/664x374/n/cw/ec/141867/nexon-exterior-right-front-three-quarter-75.jpeg?isig=0&q=80",
+  },
+  {
+    id: 12,
+    brand: "MG",
+    model: "ZS EV",
+    price: 2400,
+    category: "Electric",
+    image:
+      "https://imgd.aeplcdn.com/642x336/n/cw/ec/110437/zs-ev-exterior-right-front-three-quarter-69.jpeg?isig=0&q=80",
+  },
+  {
+    id: 13,
+    brand: "Hyundai",
+    model: "Kona EV",
+    price: 2500,
+    category: "Electric",
+    image:
+      "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/29580/kona-electric-exterior-right-front-three-quarter-162254.jpeg?isig=0&wm=1&q=80&q=80",
+  },
+  {
+    id: 14,
+    brand: "BYD",
+    model: "Atto 3",
+    price: 2600,
+    category: "Electric",
+    image:
+      "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/130183/atto-3-exterior-right-front-three-quarter-104.jpeg?isig=0&q=80&q=80",
+  },
+  {
+    id: 15,
+    brand: "Mahindra",
+    model: "XUV400 EV",
+    price: 2300,
+    category: "Electric",
+    image:
+      "https://img.gaadicdn.com/images/car-images/large/Mahindra/XUV400-EV/9572/1717997553075/224_Everest-White-dualtone_f9f9f9.jpg",
+  },
+
+  {
+    id: 16,
+    brand: "Maruti",
+    model: "Swift",
+    price: 1100,
+    category: "Hatchback",
+    image:
+      "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/159099/swift-exterior-right-front-three-quarter-31.jpeg?isig=0&q=80&q=80",
+  },
+  {
+    id: 17,
+    brand: "Hyundai",
+    model: "i20",
+    price: 1300,
+    category: "Hatchback",
+    image:
+      "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/158139/i20-n-line-exterior-right-front-three-quarter-15.jpeg?isig=0&q=80&q=80",
+  },
+  {
+    id: 18,
+    brand: "Tata",
+    model: "Altroz",
+    price: 1200,
+    category: "Hatchback",
+    image:
+      "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/199863/altroz-facelift-exterior-right-front-three-quarter-4.jpeg?isig=0&q=80&q=80",
+  },
+  {
+    id: 19,
+    brand: "Renault",
+    model: "Kwid",
+    price: 1000,
+    category: "Hatchback",
+    image:
+      "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/141125/kwid-exterior-right-front-three-quarter-37.jpeg?isig=0&q=80&q=80",
+  },
+  {
+    id: 20,
+    brand: "Maruti",
+    model: "Baleno",
+    price: 1400,
+    category: "Hatchback",
+    image:
+      "https://www.financialexpress.com/wp-content/uploads/2017/03/Maruti-Suzuki-Baleno-RS-PNG-large.png?w=660",
+  },
+
+  {
+    id: 21,
+    brand: "BMW",
+    model: "X1",
+    price: 5000,
+    category: "Luxury",
+    image:
+      "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/140591/x1-exterior-right-front-three-quarter-7.jpeg?isig=0&q=80&q=80",
+  },
+  {
+    id: 22,
+    brand: "Mercedes",
+    model: "C-Class",
+    price: 5500,
+    category: "Luxury",
+    image:
+      "https://www.mbusa.com/content/dam/mb-nafta/us/myco/my25/c-class/class-page/series/2025-C-SEDAN-CT-1-6-01-DR.jpg",
+  },
+  {
+    id: 23,
+    brand: "Audi",
+    model: "Q3",
+    price: 5300,
+    category: "Luxury",
+    image:
+      "https://imgd.aeplcdn.com/664x374/n/cw/ec/28379/q3-exterior-right-front-three-quarter-93481.jpeg?isig=0&q=80",
+  },
+  {
+    id: 24,
+    brand: "Volvo",
+    model: "XC40",
+    price: 5200,
+    category: "Luxury",
+    image:
+      "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/131141/xc40-exterior-right-front-three-quarter-108.jpeg?isig=0&q=80&q=80",
+  },
+  {
+    id: 25,
+    brand: "Jaguar",
+    model: "XE",
+    price: 5800,
+    category: "Luxury",
+    image:
+      "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/43356/jaguar-xe-front-right-three-quarter-7.jpeg?q=80&q=80",
+  },
+
+  {
+    id: 26,
+    brand: "Nissan",
+    model: "Magnite",
+    price: 1700,
+    category: "Compact SUV",
+    image: "https://imgd-ct.aeplcdn.com/664x415/n/qutiueb_1779625.jpg?q=80",
+  },
+  {
+    id: 27,
+    brand: "Renault",
+    model: "Kiger",
+    price: 1600,
+    category: "Compact SUV",
+    image:
+      "https://imgd-ct.aeplcdn.com/1280x720/n/cw/ec/141859/kiger-right-front-three-quarter-2.jpeg?isig=0&q=80",
+  },
+  {
+    id: 28,
+    brand: "Hyundai",
+    model: "Venue",
+    price: 1800,
+    category: "Compact SUV",
+    image:
+      "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/141113/venue-exterior-right-front-three-quarter-16.jpeg?isig=0&q=80&q=80",
+  },
+  {
+    id: 29,
+    brand: "Tata",
+    model: "Punch",
+    price: 1500,
+    category: "Compact SUV",
+    image:
+      "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/39015/punch-exterior-right-front-three-quarter-57.jpeg?isig=0&q=80&q=80",
+  },
+  {
+    id: 30,
+    brand: "Kia",
+    model: "Sonet",
+    price: 1900,
+    category: "Compact SUV",
+    image:
+      "https://www.kia.com/content/dam/kia2/in/en/images/360vr/sonet/sxw5k2g1uhh074/exterior/gb3/08-m.png",
+  },
+];
+
+export default cars;
