@@ -1,13 +1,52 @@
-import { useParams } from "react-router-dom";
-import { useState } from "react";
-import cars from "../data/cars";
+// src/pages/Book.jsx
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { getCarById } from "../services/car";
+import { createCheckoutSession } from "../services/paymentServic";
+import { loadStripe } from "@stripe/stripe-js";
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 export default function Book() {
   const { id } = useParams();
-  const car = cars.find((car) => car.id === parseInt(id));
-  const [days, setDays] = useState(1);
-  const [booked, setBooked] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
+  const [car, setCar] = useState(null);
+  const [days, setDays] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false); // track payment success
+
+  // Check query params for success
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    if (queryParams.get("success") === "true") {
+      setPaymentSuccess(true);
+    }
+  }, [location.search]);
+
+  // Fetch car details
+  useEffect(() => {
+    async function fetchCar() {
+      try {
+        const data = await getCarById(id);
+        setCar(data);
+      } catch (err) {
+        console.error("Error fetching car:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCar();
+  }, [id]);
+
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-600">
+        Loading car details...
+      </div>
+    );
   if (!car)
     return (
       <div className="min-h-screen flex items-center justify-center text-red-600 p-8">
@@ -15,27 +54,32 @@ export default function Book() {
       </div>
     );
 
-  const handleBooking = () => {
-    const booking = {
-      carId: car.id,
-      carName: `${car.brand} ${car.model}`,
-      pricePerDay: car.price,
-      days,
-      total: car.price * days,
-      startDate: new Date().toISOString().split("T")[0],
-      endDate: new Date(Date.now() + days * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .split("T")[0],
-    };
-    // Save with unique key to store multiple bookings
-    localStorage.setItem(`booking_${Date.now()}`, JSON.stringify(booking));
-    setBooked(true);
+  const handleBooking = async () => {
+    try {
+      setProcessingPayment(true);
+
+      const bookingData = {
+        carId: car._id,
+        carName: `${car.brand} ${car.model}`,
+        pricePerDay: Number(car.price),
+        rentalDays: Number(days),
+      };
+
+      const sessionData = await createCheckoutSession(bookingData);
+      const stripe = await stripePromise;
+      await stripe.redirectToCheckout({ sessionId: sessionData.id });
+    } catch (err) {
+      console.error("Payment error:", err);
+      alert("Payment failed. Please try again.");
+      setProcessingPayment(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-lg overflow-hidden w-full max-w-2xl">
         <div className="md:flex">
+          {/* Car Image */}
           <div className="md:w-1/2 bg-gray-100 flex items-center justify-center p-6">
             <img
               src={car.image}
@@ -44,6 +88,7 @@ export default function Book() {
             />
           </div>
 
+          {/* Car Details */}
           <div className="md:w-1/2 p-8">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-800 mb-1">
@@ -61,6 +106,7 @@ export default function Book() {
               </div>
             </div>
 
+            {/* Rental Days Selector */}
             <div className="mb-6">
               <label className="block text-gray-700 font-medium mb-2">
                 Rental Period (Days)
@@ -69,6 +115,7 @@ export default function Book() {
                 <button
                   onClick={() => setDays(Math.max(1, days - 1))}
                   className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-l"
+                  disabled={paymentSuccess}
                 >
                   -
                 </button>
@@ -80,17 +127,20 @@ export default function Book() {
                   }
                   className="border-t border-b border-gray-300 text-center w-16 py-1"
                   min="1"
+                  disabled={paymentSuccess}
                 />
                 <button
                   onClick={() => setDays(days + 1)}
                   className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-r"
+                  disabled={paymentSuccess}
                 >
                   +
                 </button>
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-4 mb-6">
+            {/* Total Price */}
+            <div className="border-t border-gray-200 pt-4 mb-4">
               <div className="flex justify-between items-center">
                 <span className="font-semibold">Total Amount</span>
                 <span className="text-xl font-bold text-blue-600">
@@ -99,22 +149,25 @@ export default function Book() {
               </div>
             </div>
 
+            {/* Success message above button */}
+            {paymentSuccess && (
+              <div className="mb-4 text-green-600 font-medium">
+                ✅ Your booking has been confirmed!
+              </div>
+            )}
+
+            {/* Confirm Booking Button */}
             <button
               onClick={handleBooking}
-              disabled={booked}
+              disabled={processingPayment || paymentSuccess}
               className={`w-full py-3 rounded-lg font-medium ${
-                booked ? "bg-green-500" : "bg-blue-600 hover:bg-blue-700"
+                processingPayment
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
               } text-white transition-colors`}
             >
-              {booked ? "Booking Confirmed!" : "Confirm Booking"}
+              {processingPayment ? "Processing Payment..." : "Confirm Booking"}
             </button>
-
-            {booked && (
-              <p className="mt-4 text-green-600 text-center">
-                Your booking has been confirmed. You can view all bookings in
-                your Booking Summary.
-              </p>
-            )}
           </div>
         </div>
       </div>

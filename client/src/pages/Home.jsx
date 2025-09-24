@@ -1,16 +1,48 @@
-import { useState } from "react";
-import cars from "../data/cars";
+// src/pages/Home.jsx
+import { useState, useEffect } from "react";
+import { getAllCars } from "../services/car";
 import CarItem from "../components/CarItem";
 import Filter from "../components/Filter";
 import Search from "../components/Search";
 
 export default function Home() {
-  const [filteredCars, setFilteredCars] = useState(cars);
+  const [cars, setCars] = useState([]); // full list from API
+  const [filteredCars, setFilteredCars] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [activePriceRange, setActivePriceRange] = useState({
     min: 0,
     max: Infinity,
   });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchCars() {
+      try {
+        const data = await getAllCars();
+        setCars(data);
+        setFilteredCars(data);
+      } catch (err) {
+        console.error("Error fetching cars:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCars();
+  }, []);
+
+  function applyFilters(category, minPrice, maxPrice, sourceCars = cars) {
+    let results = sourceCars;
+
+    if (category !== "All") {
+      results = results.filter((car) => car.category === category);
+    }
+
+    results = results.filter(
+      (car) => car.price >= minPrice && car.price <= maxPrice
+    );
+
+    setFilteredCars(results);
+  }
 
   function handleCategoryChange(category) {
     setActiveCategory(category);
@@ -20,22 +52,6 @@ export default function Home() {
   function handlePriceRangeChange(min, max) {
     setActivePriceRange({ min, max });
     applyFilters(activeCategory, min, max);
-  }
-
-  function applyFilters(category, minPrice, maxPrice) {
-    let results = cars;
-
-    // Apply category filter
-    if (category !== "All") {
-      results = results.filter((car) => car.category === category);
-    }
-
-    // Apply price range filter
-    results = results.filter(
-      (car) => car.price >= minPrice && car.price <= maxPrice
-    );
-
-    setFilteredCars(results);
   }
 
   function handleSearch(searchTerm) {
@@ -48,13 +64,15 @@ export default function Home() {
     const filtered = cars.filter(
       (car) =>
         car.brand.toLowerCase().includes(term) ||
-        (car.model.toLowerCase().includes(term) &&
-          (activeCategory === "All" || car.category === activeCategory) &&
-          car.price >= activePriceRange.min &&
-          car.price <= activePriceRange.max)
+        car.model.toLowerCase().includes(term)
     );
 
-    setFilteredCars(filtered);
+    applyFilters(
+      activeCategory,
+      activePriceRange.min,
+      activePriceRange.max,
+      filtered
+    );
   }
 
   function resetFilters() {
@@ -63,14 +81,20 @@ export default function Home() {
     setFilteredCars(cars);
   }
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-lg text-gray-600">Loading cars...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
-      {/* Search Bar - First element at the top */}
       <div className="mb-6">
         <Search onSearch={handleSearch} />
       </div>
 
-      {/* Highlighted Header Section */}
       <div className="bg-blue-50 border border-blue-200 p-6 rounded-xl text-center mb-8 shadow-sm">
         <h2 className="text-4xl font-bold text-blue-700 mb-2">
           Find Your Perfect Ride
@@ -80,17 +104,15 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Filter Buttons - Now with price ranges */}
       <Filter
         onCategoryChange={handleCategoryChange}
         onPriceRangeChange={handlePriceRangeChange}
       />
 
-      {/* Cars Grid */}
       {filteredCars.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCars.map((car) => (
-            <CarItem key={car.id} car={car} />
+            <CarItem key={car._id} car={car} />
           ))}
         </div>
       ) : (

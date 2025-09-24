@@ -14,7 +14,7 @@ export default function CarItem({ car }) {
       </h2>
       <p className="text-blue-600 font-medium mt-1">₹{car.price}/day</p>
 
-      <Link to={`/book/${car.id}`}>
+      <Link to={`/book/${car._id}`}>
         <button className="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
           Book Now
         </button>
