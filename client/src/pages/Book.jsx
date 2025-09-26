@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { getCarById } from "../services/car";
 import { createCheckoutSession } from "../services/paymentServic";
 import { loadStripe } from "@stripe/stripe-js";
+import { createBooking } from "../services/BookingService";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
@@ -17,14 +18,51 @@ export default function Book() {
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false); // track payment success
+  const [bookingSaved, setBookingSaved] = useState(false); // Add this state
 
-  // Check query params for success
+  // Replace the existing useEffect for success handling
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    if (queryParams.get("success") === "true") {
-      setPaymentSuccess(true);
+    const query = new URLSearchParams(location.search);
+    const success = query.get("success");
+
+    async function saveBooking() {
+      if (!car?._id || !car?.price || !days) {
+        console.error("Missing required booking data");
+        return;
+      }
+
+      try {
+        // Remove existing booking check from localStorage if any
+        localStorage.removeItem(`booking_${car._id}`);
+
+        // Calculate total amount
+        const totalAmount = Number(car.price) * Number(days);
+
+        const bookingData = {
+          car: car._id,
+          amount: totalAmount,
+          days: Number(days),
+          paymentStatus: "paid",
+        };
+
+        await createBooking(bookingData);
+        setPaymentSuccess(true);
+        navigate("/booking-summary", { replace: true }); // Use replace to prevent back navigation
+      } catch (error) {
+        console.error("Booking Error:", error.response?.data || error);
+      }
     }
-  }, [location.search]);
+
+    // Only run once when success=true and not already processed
+    if (success === "true" && !bookingSaved && car) {
+      const hasProcessed = localStorage.getItem(`processed_${location.search}`);
+      if (!hasProcessed) {
+        localStorage.setItem(`processed_${location.search}`, "true");
+        saveBooking();
+        setBookingSaved(true);
+      }
+    }
+  }, [car, days, location.search, navigate, bookingSaved]);
 
   // Fetch car details
   useEffect(() => {

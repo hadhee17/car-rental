@@ -21,6 +21,7 @@ exports.getAllUsers = async (req, res) => {
 exports.getUserById = async (req, res, next) => {
   try {
     const user = await userModel.findById(req.params.id);
+    console.log(user);
     if (!user) {
       return next(new appError("User not found", 404));
     }
@@ -31,7 +32,7 @@ exports.getUserById = async (req, res, next) => {
       },
     });
   } catch (error) {
-    next(new appError("Failed to get user", 404));
+    next(new appError(`Failed to get user: ${error.message}`, 404));
   }
 };
 

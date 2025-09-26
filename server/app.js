@@ -7,10 +7,14 @@ const AppError = require("./utils/appError");
 const carRoutes = require("./routes/carRoutes");
 const userRoutes = require("./routes/userRoutes");
 const paymentRoutes = require("./routes/paymentRoute");
+const bookingRoutes = require("./routes/bookingRoutes");
+const cookieParser = require("cookie-parser");
+
 const cors = require("cors");
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 
 //cors
 const allowedOrigins = [
@@ -28,6 +32,7 @@ app.use(
 app.use("/api/v1", carRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/payment", paymentRoutes);
+app.use("/api/v1/bookings", bookingRoutes);
 
 //
 app.all("/*catchall", (req, res, next) => {

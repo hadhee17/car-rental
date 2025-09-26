@@ -2,7 +2,7 @@
 import api from "./api";
 
 // ✅ Get currently logged-in user
-export async function getCurrentUser() {
+export async function getMe() {
   const res = await api.get("/users/me");
   return res.data.data.user;
 }
@@ -14,8 +14,8 @@ export async function loginUser(email, password) {
 }
 
 // ✅ Signup (register new user)
-export async function signupUser(payload) {
-  const res = await api.post("/users/signup", payload);
+export async function signupUser(userData) {
+  const res = await api.post("/users/signup", userData);
   return res.data.data.user;
 }
 

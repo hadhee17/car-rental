@@ -1,32 +1,87 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { getMyBookings, deleteBooking } from "../services/BookingService";
+import { Link } from "react-router-dom";
 
 export default function BookingSummary() {
-  // Get all bookings from localStorage
-  const [bookings, setBookings] = useState(() => {
-    const savedBookings = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key.startsWith("booking_")) {
-        savedBookings.push({
-          key,
-          ...JSON.parse(localStorage.getItem(key)),
-        });
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { currentUser } = useAuth();
+
+  useEffect(() => {
+    async function fetchBookings() {
+      try {
+        const fetchedBookings = await getMyBookings();
+        setBookings(fetchedBookings);
+      } catch (err) {
+        setError("Failed to fetch bookings");
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
     }
-    return savedBookings;
-  });
 
-  const handleDelete = (bookingKey) => {
-    localStorage.removeItem(bookingKey);
-    setBookings(bookings.filter((booking) => booking.key !== bookingKey));
+    if (currentUser) {
+      fetchBookings();
+    } else {
+      setLoading(false); // Stop loading if no user
+    }
+  }, [currentUser]);
+
+  const handleDelete = async (bookingId) => {
+    try {
+      await deleteBooking(bookingId);
+      setBookings(bookings.filter((booking) => booking._id !== bookingId));
+    } catch (err) {
+      console.error("Failed to delete booking:", err);
+    }
   };
 
-  const handleClearAll = () => {
-    bookings.forEach((booking) => {
-      localStorage.removeItem(booking.key);
-    });
-    setBookings([]);
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl text-gray-600">Loading bookings...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl text-red-600">{error}</p>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">
+            Access Restricted
+          </h1>
+          <p className="text-gray-600 mb-8">
+            You need to log in or sign up to view your booking summary
+          </p>
+          <div className="space-y-4 sm:space-y-0 sm:space-x-4 flex flex-col sm:flex-row justify-center">
+            <Link
+              to="/login"
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg transition-colors"
+            >
+              Log In
+            </Link>
+            <Link
+              to="/signup"
+              className="inline-block bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg transition-colors"
+            >
+              Sign Up
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (bookings.length === 0) {
     return (
@@ -49,7 +104,7 @@ export default function BookingSummary() {
     );
   }
 
-  const grandTotal = bookings.reduce((sum, booking) => sum + booking.total, 0);
+  const grandTotal = bookings.reduce((sum, booking) => sum + booking.amount, 0);
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -58,39 +113,37 @@ export default function BookingSummary() {
           <h1 className="text-3xl font-bold text-blue-600 mb-2">
             Your Booking History
           </h1>
-          <div className="flex justify-center gap-4 mt-4">
-            <button
-              onClick={handleClearAll}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-            >
-              Clear All Bookings
-            </button>
-          </div>
         </div>
 
         <div className="space-y-6">
           {bookings.map((booking) => (
             <div
-              key={booking.key}
+              key={booking._id}
               className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden"
             >
               <div className="p-6">
                 <div className="flex justify-between items-start">
                   <div>
                     <h2 className="text-xl font-semibold text-gray-800">
-                      {booking.carName}
+                      {booking.car.brand} {booking.car.model}
                     </h2>
                     <p className="text-gray-500 mt-1">
-                      {new Date(booking.startDate).toLocaleDateString()} -{" "}
-                      {new Date(booking.endDate).toLocaleDateString()}
+                      Booked on:{" "}
+                      {new Date(booking.bookedAt).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
-                      Confirmed
+                    <span
+                      className={`px-3 py-1 ${
+                        booking.paymentStatus === "paid"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      } text-sm font-medium rounded-full`}
+                    >
+                      {booking.paymentStatus}
                     </span>
                     <button
-                      onClick={() => handleDelete(booking.key)}
+                      onClick={() => handleDelete(booking._id)}
                       className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full hover:bg-red-200"
                     >
                       Delete
@@ -98,18 +151,17 @@ export default function BookingSummary() {
                   </div>
                 </div>
 
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="border border-gray-100 rounded-lg p-4">
-                    <p className="text-sm text-gray-500">Price per day</p>
-                    <p className="font-medium">₹{booking.pricePerDay}</p>
-                  </div>
-                  <div className="border border-gray-100 rounded-lg p-4">
-                    <p className="text-sm text-gray-500">Rental days</p>
-                    <p className="font-medium">{booking.days} days</p>
+                    <p className="text-sm text-gray-500">Car Details</p>
+                    <p className="font-medium">{booking.car.category}</p>
+                    <p className="text-sm text-gray-500">
+                      {booking.car.fuelType}
+                    </p>
                   </div>
                   <div className="border border-gray-100 rounded-lg p-4 bg-blue-50">
-                    <p className="text-sm text-blue-600">Subtotal</p>
-                    <p className="font-bold text-blue-700">₹{booking.total}</p>
+                    <p className="text-sm text-blue-600">Amount Paid</p>
+                    <p className="font-bold text-blue-700">₹{booking.amount}</p>
                   </div>
                 </div>
               </div>
@@ -123,15 +175,9 @@ export default function BookingSummary() {
             <p className="text-2xl font-bold text-blue-600">₹{grandTotal}</p>
           </div>
           <div className="mt-6 flex flex-col sm:flex-row gap-4">
-            <button
-              onClick={() => window.print()}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors"
-            >
-              Print All Receipts
-            </button>
             <a
               href="/"
-              className="flex-1 text-center border border-gray-300 text-gray-700 hover:bg-gray-50 py-3 rounded-lg font-medium transition-colors"
+              className="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors"
             >
               Book Another Car
             </a>

@@ -28,7 +28,6 @@ exports.signup = async (req, res, next) => {
       email,
       password,
       passwordConfirm,
-      role,
     });
 
     const token = signToken(newUser._id);
@@ -54,29 +53,37 @@ exports.signup = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+
     if (!email || !password) {
-      return next(new appError("Please provide email and password", 400));
+      return next(new appError("Please provide login and password", 404));
     }
+
     const user = await userModel.findOne({ email }).select("+password");
+
     if (!user || !(await user.correctPassword(password, user.password))) {
-      return next(new appError("Incorrect email or password", 401));
+      return next(new appError("Invalid email or password", 401));
     }
 
     const token = signToken(user._id);
+
     res.cookie("jwt", token, {
       httpOnly: true,
-      // secure: false,
-      secure: process.env.NODE_ENV === "production",
+
+      secure: false,
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+    console.log("JWT cookie set:", res.getHeader("Set-Cookie"));
+
     res.status(200).json({
-      status: "success",
+      status: "Success",
       token,
-      data: { user },
+      data: {
+        user,
+      },
     });
   } catch (error) {
-    next(new appError(`Failed to log in user: ${error.message}`, 400));
+    console.log(error);
   }
 };
 
@@ -84,15 +91,16 @@ exports.login = async (req, res, next) => {
 exports.protect = async (req, res, next) => {
   try {
     let token;
-    if (req.cookies && req.cookies.jwt) {
-      token = req.cookies.jwt;
-    }
     if (
       req.headers.authorization &&
       req.headers.authorization.startsWith("Bearer")
     ) {
       token = req.headers.authorization.split(" ")[1];
     }
+    if (req.cookies && req.cookies.jwt) {
+      token = req.cookies.jwt;
+    }
+
     if (!token) {
       return next(new appError("You are not logged in", 401));
     }
