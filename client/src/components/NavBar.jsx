@@ -1,3 +1,4 @@
+// src/components/NavBar.jsx
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -26,6 +27,18 @@ export default function Navbar() {
         </Link>
         <Link to="/booking-summary" className={navStyle("/booking-summary")}>
           Booking Summary
+        </Link>
+
+        {/* 🚀 Enhanced Glowy Ask AI Button */}
+        <Link
+          to="/ai"
+          className="relative inline-block px-6 py-2 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg 
+                     hover:from-blue-600 hover:to-indigo-700 transition-all
+                     animate-pulse
+                     before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-blue-400 before:to-indigo-500 
+                     before:blur-xl before:opacity-50 before:transition-opacity hover:before:opacity-100"
+        >
+          🚀 Ask AI
         </Link>
 
         {!loading &&

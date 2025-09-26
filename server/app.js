@@ -8,6 +8,7 @@ const carRoutes = require("./routes/carRoutes");
 const userRoutes = require("./routes/userRoutes");
 const paymentRoutes = require("./routes/paymentRoute");
 const bookingRoutes = require("./routes/bookingRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 const cookieParser = require("cookie-parser");
 
 const cors = require("cors");
@@ -33,6 +34,7 @@ app.use("/api/v1", carRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/payment", paymentRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
+app.use("/api/ai", aiRoutes);
 
 //
 app.all("/*catchall", (req, res, next) => {

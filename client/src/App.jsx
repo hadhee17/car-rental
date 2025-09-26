@@ -1,3 +1,4 @@
+// src/App.jsx
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Book from "./pages/Book";
@@ -5,6 +6,7 @@ import BookingSummary from "./pages/BookingSummary";
 import Login from "./pages/login";
 import Signup from "./pages/signup";
 import Navbar from "./components/NavBar";
+import AiChat from "./components/AiChat"; // ✅ import AI Chat
 
 export default function App() {
   return (
@@ -16,6 +18,7 @@ export default function App() {
         <Route path="/booking-summary" element={<BookingSummary />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/ai" element={<AiChat />} /> {/* ✅ new AI route */}
       </Routes>
     </div>
   );
