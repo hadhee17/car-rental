@@ -10,7 +10,7 @@ const connectToDB = async () => {
 connectToDB();
 
 app.use("/", (req, res) => {
-  res.send("API is running...");
+  res.send("API is running..");
 });
 
 app.listen(process.env.PORT, () => {
