@@ -35,48 +35,41 @@ router.post("/ask", async (req, res) => {
   try {
     const context = await buildContext();
 
-    // Call Ollama API
-    const response = await axios.post(
-      "http://localhost:11434/api/generate",
-      {
-        model: "llama3",
-        prompt: `You are an assistant for a car rental website. Use ONLY the provided data to answer questions.
+    // Build the full prompt
+    const prompt = `
+You are an assistant for a car rental website. Use ONLY the provided data to answer questions.
 
 Data:
 ${context}
 
 Question: ${question}
 
-If the answer is not in the data, reply: "I don't know".`,
+If the answer is not in the data, reply: "I don't know".
+`;
+
+    // Call Groq API instead of Ollama
+    const response = await axios.post(
+      "https://api.groq.com/openai/v1/chat/completions",
+      // "http://localhost:11434/api/generate",
+      {
+        model: "llama-3.1-8b-instant", // free fast model
+        messages: [{ role: "user", content: prompt }],
         max_tokens: 500,
+        temperature: 0, // more accurate, less random
       },
       {
-        headers: { "Content-Type": "application/json" },
-        responseType: "stream", // enable streaming
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`, // store your API key in .env
+        },
       }
     );
 
-    let answer = "";
-    response.data.on("data", (chunk) => {
-      const lines = chunk.toString().split("\n");
-      for (let line of lines) {
-        if (line) {
-          try {
-            const parsed = JSON.parse(line);
-            if (parsed.response) answer += parsed.response;
-          } catch (err) {
-            // ignore parse errors
-          }
-        }
-      }
-    });
-
-    response.data.on("end", () => {
-      res.json({ answer });
-    });
+    const answer = response.data.choices[0].message.content;
+    res.json({ answer });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
+    console.error(err.response?.data || err.message);
+    res.status(500).json({ error: "AI request failed" });
   }
 });
 
