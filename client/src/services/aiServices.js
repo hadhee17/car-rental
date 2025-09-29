@@ -3,7 +3,7 @@ import axios from "axios";
 export async function askAi(question) {
   try {
     const res = await axios.post(
-      `${import.meta.env.VITE_BACKEND_URL}/api/ai/ask`,
+      `https://car-rental-backen.vercel.app/api/ai/ask`,
       {
         question,
       }
