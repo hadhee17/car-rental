@@ -32,6 +32,7 @@ exports.signup = async (req, res, next) => {
 
     const token = signToken(newUser._id);
     res.cookie("jwt", token, {
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       httpOnly: true,
       // secure: false,
       secure: process.env.NODE_ENV === "production",
@@ -69,7 +70,7 @@ exports.login = async (req, res, next) => {
     res.cookie("jwt", token, {
       httpOnly: true,
 
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });

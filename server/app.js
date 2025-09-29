@@ -10,6 +10,9 @@ const paymentRoutes = require("./routes/paymentRoute");
 const bookingRoutes = require("./routes/bookingRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const cookieParser = require("cookie-parser");
+//security middleware
+const rateLimit = require("express-rate-limit");
+const hpp = require("hpp");
 
 const cors = require("cors");
 
@@ -17,9 +20,19 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+//parameter pollution
+app.use(hpp());
+
+//limit request from same api
+const limiter = rateLimit({
+  max: 200,
+  windowMs: 60 * 60 * 1000,
+  message: "Too many requests from this IP, please try again in an hour",
+});
+app.use("/api", limiter);
 //cors
 const allowedOrigins = [
-  "http://localhost:5173", // local Vite dev server
+  "http://localhost:5173", process.env.FRONTEND_URL // local Vite dev server
   // deployed frontend
 ];
 app.use(
