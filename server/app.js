@@ -32,7 +32,6 @@ const limiter = rateLimit({
 app.use("/api", limiter);
 //cors
 const allowedOrigins = [
-  "https://car-rental-frontent.vercel.app/",
   process.env.FRONTEND_URL, // local Vite dev server
   // deployed frontend
 ];
