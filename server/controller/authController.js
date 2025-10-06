@@ -13,12 +13,14 @@ const signToken = (id) =>
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
 
+  const isProduction = process.env.NODE_ENV === "production"; // detect prod
   const cookieExpiresDays = Number(process.env.JWT_COOKIE_EXPIRES_IN || 7);
+
   const cookieOptions = {
     expires: new Date(Date.now() + cookieExpiresDays * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: isProduction, // true in production, false locally
+    sameSite: isProduction ? "none" : "lax", // "none" for cross-domain in prod
   };
 
   res.cookie("jwt", token, cookieOptions);
@@ -29,10 +31,7 @@ const createSendToken = (user, statusCode, res) => {
 
   res.status(statusCode).json({
     status: "success",
-    token,
-    data: {
-      user: userSafe,
-    },
+    data: { user: userSafe },
   });
 };
 

@@ -3,7 +3,7 @@ import axios from "axios";
 export async function askAi(question) {
   try {
     const res = await axios.post(
-      `https://drivezy-car-rental-web-application.onrender.com/api/ai/ask`,
+      `${import.meta.env.VITE_BACKEND_URL}/api/ai/ask`,
       {
         question,
       }
