@@ -20,7 +20,7 @@ const createSendToken = (user, statusCode, res) => {
     expires: new Date(Date.now() + cookieExpiresDays * 24 * 60 * 60 * 1000),
     httpOnly: true,
     secure: isProduction, // true in production, false locally
-    sameSite: isProduction ? "none" : "lax", // "none" for cross-domain in prod
+    sameSite: "none", // "none" for cross-domain in prod
   };
 
   res.cookie("jwt", token, cookieOptions);
