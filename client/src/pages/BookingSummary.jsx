@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getMyBookings, deleteBooking } from "../services/BookingService";
-import { Link } from "react-router-dom";
 
 export default function BookingSummary() {
   const [bookings, setBookings] = useState([]);
@@ -16,7 +16,6 @@ export default function BookingSummary() {
         setBookings(fetchedBookings);
       } catch (err) {
         setError("Failed to fetch bookings");
-        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -25,18 +24,47 @@ export default function BookingSummary() {
     if (currentUser) {
       fetchBookings();
     } else {
-      setLoading(false); // Stop loading if no user
+      setLoading(false);
     }
   }, [currentUser]);
 
   const handleDelete = async (bookingId) => {
     try {
       await deleteBooking(bookingId);
-      setBookings(bookings.filter((booking) => booking._id !== bookingId));
+      setBookings((b) => b.filter((bk) => bk._id !== bookingId));
     } catch (err) {
-      console.error("Failed to delete booking:", err);
+      console.error(err);
     }
   };
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">
+            Access Restricted
+          </h1>
+          <p className="text-gray-600 mb-8">
+            You need to log in or sign up to view your booking summary
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Link
+              to="/login"
+              className="px-6 py-2 bg-blue-600 text-white rounded"
+            >
+              Log In
+            </Link>
+            <Link
+              to="/signup"
+              className="px-6 py-2 bg-green-600 text-white rounded"
+            >
+              Sign Up
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -54,35 +82,6 @@ export default function BookingSummary() {
     );
   }
 
-  if (!currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">
-            Access Restricted
-          </h1>
-          <p className="text-gray-600 mb-8">
-            You need to log in or sign up to view your booking summary
-          </p>
-          <div className="space-y-4 sm:space-y-0 sm:space-x-4 flex flex-col sm:flex-row justify-center">
-            <Link
-              to="/login"
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg transition-colors"
-            >
-              Log In
-            </Link>
-            <Link
-              to="/signup"
-              className="inline-block bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg transition-colors"
-            >
-              Sign Up
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (bookings.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
@@ -93,18 +92,21 @@ export default function BookingSummary() {
           <p className="text-gray-600 mb-6">
             You haven't made any reservations yet
           </p>
-          <a
-            href="/"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+          <Link
+            to="/"
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
           >
             Browse Cars
-          </a>
+          </Link>
         </div>
       </div>
     );
   }
 
-  const grandTotal = bookings.reduce((sum, booking) => sum + booking.amount, 0);
+  const grandTotal = bookings.reduce(
+    (sum, booking) => sum + (booking.amount || 0),
+    0
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -125,7 +127,7 @@ export default function BookingSummary() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h2 className="text-xl font-semibold text-gray-800">
-                      {booking.car.brand} {booking.car.model}
+                      {booking.car?.brand} {booking.car?.model}
                     </h2>
                     <p className="text-gray-500 mt-1">
                       Booked on:{" "}
@@ -154,9 +156,9 @@ export default function BookingSummary() {
                 <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="border border-gray-100 rounded-lg p-4">
                     <p className="text-sm text-gray-500">Car Details</p>
-                    <p className="font-medium">{booking.car.category}</p>
+                    <p className="font-medium">{booking.car?.category}</p>
                     <p className="text-sm text-gray-500">
-                      {booking.car.fuelType}
+                      {booking.car?.fuelType}
                     </p>
                   </div>
                   <div className="border border-gray-100 rounded-lg p-4 bg-blue-50">
@@ -175,12 +177,12 @@ export default function BookingSummary() {
             <p className="text-2xl font-bold text-blue-600">₹{grandTotal}</p>
           </div>
           <div className="mt-6 flex flex-col sm:flex-row gap-4">
-            <a
-              href="/"
-              className="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors"
+            <Link
+              to="/"
+              className="flex-1 text-center bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium"
             >
               Book Another Car
-            </a>
+            </Link>
           </div>
         </div>
       </div>

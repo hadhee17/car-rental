@@ -5,6 +5,7 @@ import { getCarById } from "../services/car";
 import { createCheckoutSession } from "../services/paymentServic";
 import { loadStripe } from "@stripe/stripe-js";
 import { createBooking } from "../services/BookingService";
+import api from "../services/api";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
@@ -17,67 +18,64 @@ export default function Book() {
   const [days, setDays] = useState(1);
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState(false); // track payment success
-  const [bookingSaved, setBookingSaved] = useState(false); // Add this state
-
-  // Replace the existing useEffect for success handling
-  useEffect(() => {
-    const query = new URLSearchParams(location.search);
-    const success = query.get("success");
-
-    async function saveBooking() {
-      if (!car?._id || !car?.price || !days) {
-        console.error("Missing required booking data");
-        return;
-      }
-
-      try {
-        // Remove existing booking check from localStorage if any
-        localStorage.removeItem(`booking_${car._id}`);
-
-        // Calculate total amount
-        const totalAmount = Number(car.price) * Number(days);
-
-        const bookingData = {
-          car: car._id,
-          amount: totalAmount,
-          days: Number(days),
-          paymentStatus: "paid",
-        };
-
-        await createBooking(bookingData);
-        setPaymentSuccess(true);
-        navigate("/booking-summary", { replace: true }); // Use replace to prevent back navigation
-      } catch (error) {
-        console.error("Booking Error:", error.response?.data || error);
-      }
-    }
-
-    // Only run once when success=true and not already processed
-    if (success === "true" && !bookingSaved && car) {
-      const hasProcessed = localStorage.getItem(`processed_${location.search}`);
-      if (!hasProcessed) {
-        localStorage.setItem(`processed_${location.search}`, "true");
-        saveBooking();
-        setBookingSaved(true);
-      }
-    }
-  }, [car, days, location.search, navigate, bookingSaved]);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [bookingSaved, setBookingSaved] = useState(false);
 
   // Fetch car details
   useEffect(() => {
     async function fetchCar() {
       try {
-        const data = await getCarById(id);
-        setCar(data);
+        const res = await api.get(`/cars/${id}`);
+        setCar(res.data.data.car);
       } catch (err) {
-        console.error("Error fetching car:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
     }
-    fetchCar();
+    if (id) fetchCar();
   }, [id]);
+
+  // Save booking once after redirect from payment (use processed key to prevent duplicates)
+  useEffect(() => {
+    const query = new URLSearchParams(location.search);
+    const success = query.get("success");
+    const processedKey = `booking_processed_${id}_${query.toString()}`;
+
+    async function saveBooking() {
+      if (!car || bookingSaved) return;
+
+      const totalAmount =
+        Number(car.price || car.pricePerDay || 0) * Number(days || 1);
+      const bookingData = {
+        car: car._id || car.id || id,
+        amount: totalAmount,
+        days: Number(days || 1),
+        paymentStatus: "paid",
+      };
+
+      try {
+        await createBooking(bookingData);
+        setBookingSaved(true);
+        setPaymentSuccess(true);
+        // mark processed to localStorage to avoid duplicate on reload/StrictMode double effect
+        localStorage.setItem(processedKey, "true");
+        navigate("/booking-summary", { replace: true });
+      } catch (err) {
+        console.error("Booking Error:", err.response?.data || err);
+      }
+    }
+
+    if (success === "true" && !bookingSaved) {
+      const already = localStorage.getItem(processedKey);
+      if (!already) {
+        saveBooking();
+      } else {
+        // Already processed; avoid saving again
+        setBookingSaved(true);
+      }
+    }
+  }, [location.search, car, days, id, bookingSaved, navigate]);
 
   if (loading)
     return (

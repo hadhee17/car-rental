@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import {
   getMe,
   loginUser,
@@ -12,21 +12,23 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check auth status on mount
+  // on mount check auth via cookie-based getMe
   useEffect(() => {
+    let mounted = true;
     async function fetchCurrentUser() {
       try {
         const user = await getMe();
-        setCurrentUser(user);
+        if (mounted) setCurrentUser(user);
       } catch (err) {
-        console.error("Failed to fetch user:", err);
-        setCurrentUser(null);
+        if (mounted) setCurrentUser(null);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     }
-
     fetchCurrentUser();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   async function login(email, password) {

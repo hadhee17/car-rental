@@ -14,12 +14,6 @@ export async function deleteBooking(id) {
 
 // Create a new booking
 export async function createBooking(bookingData) {
-  try {
-    const res = await api.post("/bookings", bookingData);
-    return res.data.data.booking;
-  } catch (error) {
-    // Log the error for debugging
-    console.error("Create booking error:", error.response?.data || error);
-    throw error;
-  }
+  const res = await api.post("/bookings", bookingData);
+  return res.data.data.booking;
 }
