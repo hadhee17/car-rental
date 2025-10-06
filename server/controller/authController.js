@@ -19,8 +19,8 @@ const createSendToken = (user, statusCode, res) => {
   const cookieOptions = {
     expires: new Date(Date.now() + cookieExpiresDays * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    secure: isProduction, // true in production, false locally
-    sameSite: isProduction ? "none" : "lax", // "none" for cross-domain in prod
+    secure: false, // true in production, false locally
+    sameSite: "lax", // "none" for cross-domain in prod
   };
 
   res.cookie("jwt", token, cookieOptions);
